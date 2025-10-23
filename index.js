@@ -3,15 +3,18 @@ import { exec } from "child_process";
 import { Storage } from "@google-cloud/storage";
 import { v4 as uuidv4 } from "uuid";
 import fs from "fs";
+import speech from "@google-cloud/speech";
 
 const app = express();
 app.use(express.json());
 
-const BUCKET_NAME = process.env.BUCKET_NAME;
+const BUCKET_NAME = process.env.BUCKET_NAME || "kavisha_audio_training";
 
 const storage = new Storage({
-  projectId: process.env.GOOGLE_CLOUD_PROJECT_ID
+  projectId: process.env.GOOGLE_CLOUD_PROJECT_ID || "kavisha-ai-468913"
 });
+
+const client = new speech.SpeechClient();
 
 app.get("/save-audio", async (req, res) => {
   const { url } = req.query;
@@ -32,10 +35,79 @@ app.get("/save-audio", async (req, res) => {
 
     await storage.bucket(BUCKET_NAME).upload(localPath, { destination: filename });
     fs.unlinkSync(localPath);
-
-    res.json({ message: "Uploaded", file: `gs://${BUCKET_NAME}/${filename}` });
+    
+    // Start speech recognition
+    try {
+      let uri = `gs://${BUCKET_NAME}/${filename}`;
+      const [operation] = await client.longRunningRecognize({
+        audio: { uri },
+        config: {
+          encoding: "MP3",
+          sampleRateHertz: 44100,
+          languageCode: "en-US",
+          alternativeLanguageCodes: ["en-IN"],
+          enableAutomaticPunctuation: true,
+          enableWordTimeOffsets: true,
+          enableSpeakerDiarization: true,
+          diarizationSpeakerCount: 1,
+          model: "latest_long",
+          useEnhanced: true,
+        },
+      });
+      
+      res.json({
+        success: true,
+        jobId: operation.name,
+        message: "Transcription Started",
+        file: `gs://${BUCKET_NAME}/${filename}`
+      });
+    } catch (speechError) {
+      // If speech recognition fails, still return success for upload
+      res.json({
+        success: true,
+        message: "Uploaded successfully, but transcription failed",
+        file: `gs://${BUCKET_NAME}/${filename}`,
+        error: speechError.message
+      });
+    }
   } catch (err) {
     res.status(500).json({ error: err.toString() });
+  }
+});
+
+// Status API to check transcription job progress
+app.get("/status", async (req, res) => {
+  const { jobid } = req.query;
+
+  if (!jobid) {
+    return res.status(400).json({ error: "Missing jobid" });
+  }
+
+  try {
+    const operation = await client.checkLongRunningRecognizeProgress(jobid);
+    
+    if (!operation.done) {
+      return res.json({ status: "processing" });
+    }
+
+    if (operation.error) {
+      return res.json({ status: "error", error: operation.error.message });
+    }
+
+    const transcription = operation.result.results
+      .map((result) => result.alternatives[0].transcript)
+      .join("\n");
+      
+    return res.json({ 
+      status: "done", 
+      transcription: transcription 
+    });
+  } catch (error) {
+    console.error("Transcription check error:", error);
+    return res.status(500).json({ 
+      status: "error", 
+      error: error.message 
+    });
   }
 });
 

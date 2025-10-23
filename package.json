@@ -8,6 +8,7 @@
     "start": "node index.js"
   },
   "dependencies": {
+    "@google-cloud/speech": "^7.2.1",
     "@google-cloud/storage": "^7.17.2",
     "express": "^4.21.2",
     "uuid": "^13.0.0",
