@@ -4,9 +4,6 @@ node_modules/
 # Google Cloud credentials
 google-service-account-key.json
 
-# YouTube cookies (optional - can be public but better to keep private)
-cookies.txt
-
 # Environment variables
 .env
 
