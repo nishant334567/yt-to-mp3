@@ -1,0 +1,18 @@
+{
+  "name": "yt-to-mp3",
+  "version": "1.0.0",
+  "description": "YouTube to MP3 API with GCP storage",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@google-cloud/storage": "^7.17.2",
+    "express": "^4.21.2",
+    "uuid": "^13.0.0",
+    "ytdl-core": "^4.11.5"
+  },
+  "author": "",
+  "license": "ISC"
+}
