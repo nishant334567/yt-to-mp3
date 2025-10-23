@@ -7,10 +7,10 @@ import fs from "fs";
 const app = express();
 app.use(express.json());
 
-const BUCKET_NAME = process.env.BUCKET_NAME || "kavisha_audio_training";
+const BUCKET_NAME = process.env.BUCKET_NAME;
 
 const storage = new Storage({
-  projectId: process.env.GOOGLE_CLOUD_PROJECT_ID || "kavisha-ai-468913"
+  projectId: process.env.GOOGLE_CLOUD_PROJECT_ID
 });
 
 app.get("/save-audio", async (req, res) => {
@@ -19,7 +19,8 @@ app.get("/save-audio", async (req, res) => {
 
   const filename = `${uuidv4()}.mp3`;
   const localPath = `/tmp/${filename}`;
-  const cmd = `yt-dlp -x --audio-format mp3 --cookies ${cookies.txt -o ${localPath} ${url}`;
+  const cookiePath = `/app/cookies.txt`;
+  const cmd = `yt-dlp -x --audio-format mp3 --cookies ${cookiePath} -o ${localPath} ${url}`;
 
   try {
     await new Promise((resolve, reject) => {
@@ -38,4 +39,5 @@ app.get("/save-audio", async (req, res) => {
   }
 });
 
-app.listen(8080, () => console.log("Server running on port 8080"));
+const PORT = process.env.PORT || 8080;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
