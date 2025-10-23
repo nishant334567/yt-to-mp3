@@ -19,7 +19,7 @@ app.get("/save-audio", async (req, res) => {
 
   const filename = `${uuidv4()}.mp3`;
   const localPath = `/tmp/${filename}`;
-  const cmd = `yt-dlp -x --audio-format mp3 -o ${localPath} ${url}`;
+  const cmd = `yt-dlp -x --audio-format mp3 --cookies cookies.txt -o ${localPath} ${url}`;
 
   try {
     await new Promise((resolve, reject) => {

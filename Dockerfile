@@ -22,6 +22,9 @@ COPY . .
 # Create temp directory
 RUN mkdir -p /tmp
 
+# Copy cookies file
+COPY cookies.txt /app/cookies.txt
+
 # Expose port
 EXPOSE 8080
 
