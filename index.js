@@ -25,7 +25,7 @@ app.get("/save-audio", async (req, res) => {
   const filename = `${uuidv4()}.mp3`;
   const localPath = `/tmp/${filename}`;
   const cookiePath = `/app/cookies.txt`;
-  const cmd = `yt-dlp -x --audio-format mp3 --cookies ${cookiePath} -o ${localPath} ${url}`;
+  const cmd = `yt-dlp -x --audio-format mp3 --audio-quality 0 --cookies ${cookiePath} -o ${localPath} ${url}`;
 
   try {
     await new Promise((resolve, reject) => {
@@ -35,8 +35,13 @@ app.get("/save-audio", async (req, res) => {
       });
     });
 
+    // Upload to GCP and clean up immediately
     await storage.bucket(BUCKET_NAME).upload(localPath, { destination: filename });
-    fs.unlinkSync(localPath);
+    
+    // Clean up local file immediately to free memory
+    if (fs.existsSync(localPath)) {
+      fs.unlinkSync(localPath);
+    }
     
     // Start speech recognition
     try {
@@ -45,15 +50,14 @@ app.get("/save-audio", async (req, res) => {
         audio: { uri },
         config: {
           encoding: "MP3",
-          sampleRateHertz: 44100,
+          sampleRateHertz: 22050, // Reduced sample rate to save memory
           languageCode: "en-US",
           alternativeLanguageCodes: ["en-IN"],
           enableAutomaticPunctuation: true,
-          enableWordTimeOffsets: true,
-          enableSpeakerDiarization: true,
-          diarizationSpeakerCount: 1,
+          enableWordTimeOffsets: false, // Disabled to save memory
+          enableSpeakerDiarization: false, // Disabled to save memory
           model: "latest_long",
-          useEnhanced: true,
+          useEnhanced: false, // Disabled to save memory
         },
       });
       
