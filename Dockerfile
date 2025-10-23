@@ -22,9 +22,6 @@ COPY . .
 # Create temp directory
 RUN mkdir -p /tmp
 
-# Copy service account key (if it exists)
-COPY google-service-account-key.json /app/google-service-account-key.json
-
 # Expose port
 EXPOSE 8080
 
