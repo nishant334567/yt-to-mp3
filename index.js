@@ -1,4 +1,5 @@
 import express from "express";
+import cors from "cors";
 import { exec } from "child_process";
 import { Storage } from "@google-cloud/storage";
 import { v4 as uuidv4 } from "uuid";
@@ -6,6 +7,7 @@ import fs from "fs";
 import speech from "@google-cloud/speech";
 
 const app = express();
+app.use(cors());
 app.use(express.json());
 
 const BUCKET_NAME = process.env.BUCKET_NAME || "kavisha_audio_training";
