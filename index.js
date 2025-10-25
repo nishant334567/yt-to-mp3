@@ -55,10 +55,14 @@ app.get("/save-audio", async (req, res) => {
           alternativeLanguageCodes: ["en-IN"],
           enableAutomaticPunctuation: true,
           enableWordTimeOffsets: true, // Disabled to save memory
-          enableSpeakerDiarization: true, // Disabled to save memory
+// Disabled to save memory
           model: "latest_long",
           useEnhanced: true, 
-          diarizationSpeakerCount: 2, // Set expected number of speakers
+          diarizationConfig: {
+            enableSpeakerDiarization: true,
+            diarizationSpeakerCount: 2,
+          },
+         
         },
       });
       
@@ -101,9 +105,40 @@ app.get("/status", async (req, res) => {
       return res.json({ status: "error", error: operation.error.message });
     }
 
-    const transcription = operation.result.results
-      .map((result) => result.alternatives[0].transcript)
-      .join("\n");
+    // Process speaker diarization
+    let transcription = "";
+    if (operation.result.results && operation.result.results.length > 0) {
+      const segments = [];
+      
+      operation.result.results.forEach((result) => {
+        const transcript = result.alternatives[0].transcript;
+        
+        // Check if we have word-level speaker tags
+        if (result.words && result.words.length > 0) {
+          // Group words by speaker
+          const speakerGroups = {};
+          
+          result.words.forEach((word) => {
+            const speakerTag = word.speakerTag || 0;
+            if (!speakerGroups[speakerTag]) {
+              speakerGroups[speakerTag] = [];
+            }
+            speakerGroups[speakerTag].push(word.word);
+          });
+          
+          // Create speaker segments
+          Object.keys(speakerGroups).forEach((speakerTag) => {
+            const speakerText = speakerGroups[speakerTag].join(' ');
+            segments.push(`Speaker ${parseInt(speakerTag) + 1}: ${speakerText}`);
+          });
+        } else {
+          // Fallback if no speaker info
+          segments.push(transcript);
+        }
+      });
+      
+      transcription = segments.join('\n\n');
+    }
       
     return res.json({ 
       status: "done", 
