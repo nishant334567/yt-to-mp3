@@ -52,12 +52,11 @@ app.get("/save-audio", async (req, res) => {
           encoding: "MP3",
           sampleRateHertz: 22050, // Reduced sample rate to save memory
           languageCode: "en-US",
-          alternativeLanguageCodes: ["en-IN"],
+          alternativeLanguageCodes: ["en-IN","hi-IN"],
           enableAutomaticPunctuation: true,
-          enableWordTimeOffsets: false, // Disabled to save memory
-          enableSpeakerDiarization: false, // Disabled to save memory
+          enableSpeakerDiarization: true, // Disabled to save memory
           model: "latest_long",
-          useEnhanced: false, // Disabled to save memory
+         
         },
       });
       
