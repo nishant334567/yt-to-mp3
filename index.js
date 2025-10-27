@@ -143,7 +143,6 @@ app.get("/status", async (req, res) => {
     return res.json({ 
       status: "done", 
       transcription: transcription,
-      operation: operation
     });
   } catch (error) {
     console.error("Transcription check error:", error);
